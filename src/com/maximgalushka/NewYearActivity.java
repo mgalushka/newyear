@@ -33,7 +33,6 @@ public class NewYearActivity extends Activity {
   // Google Project Number: 306055063211
   String SENDER_ID = "306055063211";
 
-
   String EXTRA_MESSAGE = "message";
   String PROPERTY_REG_ID = "registration_id";
   String PROPERTY_APP_VERSION = "appVersion";
