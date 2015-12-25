@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">NewYear</string>
+    <string name="happy_new_year">Happy New %d Year!</string>
+    <string name="register_phone_button">Register phone</string>
 </resources>
