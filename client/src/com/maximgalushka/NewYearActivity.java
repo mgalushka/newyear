@@ -56,9 +56,12 @@ public class NewYearActivity extends Activity {
     setContentView(R.layout.main);
 
     this.activateButton = (Button) this.findViewById(R.id.activate);
-    this.activateButton.setOnClickListener(v -> {
-      Log.d(TAG, "Registering device!");
-      retrieveRegistrationId();
+    this.activateButton.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View v) {
+        Log.d(TAG, "Registering device!");
+        NewYearActivity.this.retrieveRegistrationId();
+      }
     });
   }
 
