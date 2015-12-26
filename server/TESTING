@@ -1,0 +1,8 @@
+# save key for device
+curl -i -d device=ABC -d key=XYZ -X POST http://localhost:8080/save-key
+
+# retrieve key for device
+curl -i -d device=ABC -X POST http://localhost:8080/get-key
+
+# to send notification:
+curl --header "Authorization: key=AIzaSyBOv9VWbm2kvUh60_Jdl3QusMYvm02DdfU" --header Content-Type:"application/json" https://gcm-http.googleapis.com/gcm/send -d "{\"registration_ids\":[\"APA91bGSSunCUhhp06i85-j1-JmZifSfFgc50EgohKZWlPtM6CflwPbuGSWCgN-8SlnaxbRM26GvaXWYLvZIkgeFTYrD1VFAgfR3oi91Y2N58CPEmONIgOZqnawyPs2aSCsMjGcR1egg\"],\"data\":{\"text\":\"Ukraine\"}}"

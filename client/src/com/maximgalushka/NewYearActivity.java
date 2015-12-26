@@ -10,9 +10,9 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GooglePlayServicesUtil;
+import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.gcm.GoogleCloudMessaging;
-import com.google.gson.Gson;
+//import com.google.gson.Gson;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpPost;
@@ -22,19 +22,28 @@ import org.apache.http.params.HttpParams;
 import org.apache.http.util.EntityUtils;
 
 import java.io.IOException;
+import java.util.UUID;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 public class NewYearActivity extends Activity {
 
+  @Deprecated
   String PUSH_SERVICE_REGISTRATION = "https://api.backendless.com/v1/messaging/registrations";
-
+  @Deprecated
   String REGISTER_DEVICE = "http://192.168.1.103/omxplayer-web-controls-php/open.php?path=";
-  String ROOT = "http://192.168.1.103/omxplayer-web-controls-php/open.php?path=";
+
+  private static final String ROOT = "http://localhost:8080";
+
+  private static final String SAVE_KEY = "/save-key";
+  private static final String GET_KEY = "/get-key";
 
   // Google Project Number: 306055063211
   String SENDER_ID = "306055063211";
 
-  String EXTRA_MESSAGE = "message";
   String PROPERTY_REG_ID = "registration_id";
+  String PROPERTY_DEVICE_ID = "device_id";
   String PROPERTY_APP_VERSION = "appVersion";
 
   int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
@@ -66,9 +75,10 @@ public class NewYearActivity extends Activity {
   }
 
   void retrieveRegistrationId() {
-    if (checkPlayServices()) {
+    Context context = this.getApplicationContext();
+    if (checkPlayServices(context)) {
       gcm = GoogleCloudMessaging.getInstance(this);
-      regid = getRegistrationId(this.getApplicationContext());
+      regid = getRegistrationId(context);
 
       Log.d(TAG, "RegistrationId: " + regid);
       registrationStatus = regid;
@@ -80,13 +90,14 @@ public class NewYearActivity extends Activity {
   }
 
 
-  boolean checkPlayServices() {
-    int resultCode = GooglePlayServicesUtil.isGooglePlayServicesAvailable(this);
+  boolean checkPlayServices(Context context) {
+    GoogleApiAvailability api = GoogleApiAvailability.getInstance();
+    int resultCode = api.isGooglePlayServicesAvailable(context);
     if (resultCode != ConnectionResult.SUCCESS) {
-      if (GooglePlayServicesUtil.isUserRecoverableError(resultCode)) {
-        GooglePlayServicesUtil.getErrorDialog(
-          resultCode,
+      if (api.isUserResolvableError(resultCode)) {
+        api.getErrorDialog(
           this,
+          resultCode,
           PLAY_SERVICES_RESOLUTION_REQUEST
         ).show();
       } else {
@@ -98,11 +109,20 @@ public class NewYearActivity extends Activity {
   }
 
   String getRegistrationId(Context context) {
-    final SharedPreferences prefs = getGCMPreferences(context);
+    final SharedPreferences prefs = getGCMPreferences();
     String registrationId = prefs.getString(PROPERTY_REG_ID, "");
     if (registrationId.isEmpty()) {
-      Log.d(TAG, "Registration not found.");
-      return "";
+      Log.w(TAG, "Registration not found. Trying to get registration id from server.");
+
+      // check if device id is in preferences and try to get registration id from server:
+      String deviceId = prefs.getString(PROPERTY_DEVICE_ID, "");
+      if (deviceId.isEmpty()) {
+        Log.w(TAG, "Device id not found on server. Need to generate new id.");
+        return "";
+      } else {
+        registrationId = sendToServer(GET_KEY, deviceId, null);
+        Log.d(TAG, String.format("Registration id found on server: %s", registrationId));
+      }
     }
     // Check if app was updated; if so, it must clear the registration ID
     // since the existing regID is not guaranteed to work with the new
@@ -110,13 +130,13 @@ public class NewYearActivity extends Activity {
     int registeredVersion = prefs.getInt(PROPERTY_APP_VERSION, Integer.MIN_VALUE);
     int currentVersion = getAppVersion(context);
     if (registeredVersion != currentVersion) {
-      Log.d(TAG, "App version changed.");
+      Log.w(TAG, "App version changed. Need to generate new id.");
       return "";
     }
     return registrationId;
   }
 
-  private SharedPreferences getGCMPreferences(Context context) {
+  private SharedPreferences getGCMPreferences() {
     // This sample app persists the registration ID in shared preferences, but
     // how you store the regID in your app is up to you.
     return this.getSharedPreferences("NewYear", Activity.MODE_PRIVATE);
@@ -137,7 +157,7 @@ public class NewYearActivity extends Activity {
           }
           Log.d(TAG, "Requesting registration");
           regid = gcm.register(SENDER_ID);
-          msg = "Device registered, registration ID=" + regid;
+          msg = "Device registered, registration ID = " + regid;
 
           Log.d(TAG, msg);
 
@@ -147,7 +167,7 @@ public class NewYearActivity extends Activity {
           // so it can use GCM/HTTP or CCS to send messages to your app.
           // The request to your server should be authenticated if your app
           // is using accounts.
-          sendRegistrationIdToBackend();
+          sendRegistrationIdToBackend(regid);
 
           // For this demo: we don't need to send it because the device
           // will send upstream messages to a server that echo back the
@@ -172,65 +192,97 @@ public class NewYearActivity extends Activity {
         registrationStatus = msg;
       }
     };
-    a.execute(null, null, null);
+    a.execute();
   }
 
 
-  private void sendRegistrationIdToBackend() {
-    // Your implementation here.
+  private void sendRegistrationIdToBackend(String registrationId) {
+    // generate unique device id and store it if it is not stored already
+    final SharedPreferences prefs = getGCMPreferences();
+    String deviceId = prefs.getString(PROPERTY_DEVICE_ID, "");
+    if (deviceId.isEmpty()) {
+      deviceId = UUID.randomUUID().toString();
+      SharedPreferences.Editor editor = prefs.edit();
+      editor.putString(PROPERTY_DEVICE_ID, deviceId);
+      editor.apply();
+    }
     // post to service
-    Log.d(TAG, "here we need to send registration key to backend");
+    sendToServer(SAVE_KEY, deviceId, registrationId);
+    Log.d(TAG, "Sent registration id to server");
   }
 
   private static int getAppVersion(Context context) {
-    try {
-      PackageInfo packageInfo = context.getPackageManager()
-                                       .getPackageInfo(context.getPackageName(), 0);
-      return packageInfo.versionCode;
-    } catch (Exception e) {
-      // should never happen
-      throw new RuntimeException("Could not get package name: " + e);
-    }
+    // TODO: hard-code - remove this
+    return 1;
   }
 
   private void storeRegistrationId(Context context, String regId) {
-    final SharedPreferences prefs = getGCMPreferences(context);
+    final SharedPreferences prefs = getGCMPreferences();
     int appVersion = getAppVersion(context);
     Log.d(TAG, "Saving regId on app version " + appVersion);
     SharedPreferences.Editor editor = prefs.edit();
     editor.putString(PROPERTY_REG_ID, regId);
     editor.putInt(PROPERTY_APP_VERSION, appVersion);
-    editor.commit();
+    editor.apply();
   }
 
+  String sendToServer(final String action, final String deviceId, final String key) {
+    AsyncTask a = new AsyncTask() {
 
-  void sendToServer(String command) {
+      protected String doInBackground(Object... params) {
+
+        try {
+          DefaultHttpClient httpClient = new DefaultHttpClient();
+          Log.d(TAG, "Execute request on server: " + action);
+
+          HttpPost httpPost = new HttpPost(String.format("%s%s", ROOT, action));
+          HttpParams postParams = new BasicHttpParams();
+          postParams.setParameter("device", deviceId);
+
+          if (key != null) {
+            postParams.setParameter("key", key);
+          }
+
+          httpPost.setParams(postParams);
+
+          HttpResponse response = httpClient.execute(httpPost);
+          HttpEntity entity = response.getEntity();
+
+          // TODO: thing about protocol between client and server
+          //Gson gson = new Gson(); // Or use new GsonBuilder().create();
+
+          Log.d(TAG, "----------------------------------------");
+          Log.d(TAG, String.valueOf(response.getStatusLine()));
+          Log.d(TAG, "----------------------------------------");
+
+          String result = EntityUtils.toString(entity);
+          Log.d(TAG, "result = " + result);
+
+          //if ( entity != null ) entity.writeTo( System.out );
+          //if ( entity != null ) entity.consumeContent();
+
+          // TODO: think about protocol as this looks like a hack
+          if ("ERROR".equalsIgnoreCase(result)) {
+            return "";
+          }
+          return result;
+        } catch (IOException io) {
+          io.printStackTrace();
+        }
+
+        return "";
+      }
+    };
+
+    a.execute();
     try {
-      DefaultHttpClient httpClient = new DefaultHttpClient();
-      Log.d(TAG, "Execute command: " + command);
-      HttpPost httpPost = new HttpPost(ROOT);
-      HttpParams postParams = new BasicHttpParams();
-      postParams.setParameter("act", command);
-      postParams.setParameter("arg", "undefined");
-      httpPost.setParams(postParams);
-
-      HttpResponse response = httpClient.execute(httpPost);
-      HttpEntity entity = response.getEntity();
-
-      Gson gson = new Gson(); // Or use new GsonBuilder().create();
-
-      Log.d(TAG, "----------------------------------------");
-      Log.d(TAG, String.valueOf(response.getStatusLine()));
-      Log.d(TAG, "----------------------------------------");
-
-      String json = EntityUtils.toString(entity);
-      Log.d(TAG, "json = " + json);
-
-      //if ( entity != null ) entity.writeTo( System.out );
-      //if ( entity != null ) entity.consumeContent();
-    } catch (IOException io) {
-      io.printStackTrace();
+      return (String) a.get(10, TimeUnit.SECONDS);
+    } catch (Exception e) {
+      e.printStackTrace();
     }
+    return null;
   }
+
+
 
 }
