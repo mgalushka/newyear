@@ -89,6 +89,8 @@ public class GcmIntentService extends IntentService {
 
     // pending intent is redirection using the deep-link
     Intent resultIntent = new Intent(Intent.ACTION_VIEW);
+
+    // redirect to corresponding country Wikipedia page
     resultIntent.setData(Uri.parse(String.format("https://en.wikipedia.org/wiki/%s", msg)));
 
     PendingIntent pending = PendingIntent.getActivity(
