@@ -29,12 +29,7 @@ import java.util.concurrent.TimeoutException;
 
 public class NewYearActivity extends Activity {
 
-  @Deprecated
-  String PUSH_SERVICE_REGISTRATION = "https://api.backendless.com/v1/messaging/registrations";
-  @Deprecated
-  String REGISTER_DEVICE = "http://192.168.1.103/omxplayer-web-controls-php/open.php?path=";
-
-  private static final String ROOT = "http://localhost:8080";
+  private static final String ROOT = "http://api.lightbot.co:8080";
 
   private static final String SAVE_KEY = "/save-key";
   private static final String GET_KEY = "/get-key";
