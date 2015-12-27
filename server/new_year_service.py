@@ -10,9 +10,10 @@ import web
 urls = (
     '/save-key', 'SaveKey',
     '/get-key', 'GetKey',
+    '/list', 'ListKeys',
 )
 app = web.application(urls, globals())
-keys = {}
+web.keys = {}
 
 # new year schedule: time -> list of countries
 schedule = [
@@ -75,7 +76,7 @@ schedule = [
     ['11:00', 'American Samoa Midway Atoll/U.S.A. and 1 more',
      'Alofi Midway Pago Pago'],
     ['12:00', 'small region of U.S.A.', 'Baker Island Howland Island'],
-    ['-102:55', 'Test', 'Test'],
+    ['-101:40', 'Test', 'Test'],
 ]
 
 
@@ -88,7 +89,7 @@ class SaveKey:
         device = web.input()['device']
         key = web.input()['key']
         print('Storing key {0} for device {1}'.format(key, device))
-        keys[device] = key
+        web.keys[device] = key
         return 'OK'
 
 
@@ -99,22 +100,32 @@ class GetKey:
     def POST(self):
         web.header('Access-Control-Allow-Origin', '*')
         device = web.input()['device']
-        if device not in keys:
+        if device not in web.keys:
             return 'ERROR'
 
-        key = keys[device]
-        print('Getting key for device {0}: {1}'.format(device, keys[device]))
+        key = web.keys[device]
+        print('Getting key for device {0}: {1}'.format(device, key))
         return key
 
 
+class ListKeys:
+    def __init__(self):
+        pass
+
+    def POST(self):
+        web.header('Access-Control-Allow-Origin', '*')
+        return json.dumps(web.keys)
+
+
 def send_notification(text):
-    if not keys:
+    print(web.keys)
+    if not web.keys:
         print('Empty keys map - nothing to send. '
               'Skip notifications sending step.')
         return
 
     data = {
-        'registration_ids': [keys.values()],
+        'registration_ids': [web.keys.values()],
         'data': {'text': text},
     }
     req = urllib2.Request(
