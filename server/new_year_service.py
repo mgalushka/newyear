@@ -7,6 +7,7 @@ import json
 import urllib2
 import web
 
+# new year schedule: time -> freeform list of countries, list of countries, list of cities
 schedule = [
     ['-14:00','Samoa and Christmas Island/Kiribati','Samoa,Christmas Island,Kiribati','Kiritimati,Apia,Salelologa (Savai\'i)'],
     ['-13:45','Chatham Islands/New Zealand','Chatham Islands,New Zealand','Chatham Islands'],
@@ -48,8 +49,9 @@ schedule = [
     ['10:00','small region of U.S.A., Tahiti/French Polynesia and Cook Islands',' USA,Tahiti,French Polynesia,Cook Islands','Honolulu,Rarotonga,Adak,Papeete,Hilo'],
     ['11:00','American Samoa, regions of US Minor Outlying Islands and Niue','American Samoa, US Minor Outlying Islands,Niue','Alofi,Midway,Pago Pago'],
     ['12:00','much of US Minor Outlying Islands',' US Minor Outlying Islands','Baker Island,Howland Island'],
-    ['-101:40', 'Test', 'Test'],
+    ['-101:40', 'Test message', 'Ukraine', 'Kiev'],
 ]
+
 urls = (
     '/save-key', 'SaveKey',
     '/get-key', 'GetKey',
@@ -58,8 +60,6 @@ urls = (
 )
 app = web.application(urls, globals())
 web.keys = {}
-
-# new year schedule: time -> list of countries
 
 
 class SaveKey:
