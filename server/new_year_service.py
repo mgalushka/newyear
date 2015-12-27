@@ -183,7 +183,7 @@ def schedule_notifications(midnight=None):
 if __name__ == '__main__':
     # test timer
     schedule_notifications(datetime.strptime(
-        '2015-12-27 00:00',
+        '2015-12-28 00:00',
         '%Y-%m-%d %H:%M',
     ))
 
