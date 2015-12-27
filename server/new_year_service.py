@@ -136,7 +136,7 @@ def send_notification(text):
         return
 
     data = {
-        'registration_ids': [web.keys.values()],
+        'registration_ids': web.keys.values(),
         'data': {'text': text},
     }
     print('Sending: {0}'.format(json.dumps(data)))
