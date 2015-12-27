@@ -105,7 +105,7 @@ class SendDebug:
 
     def POST(self):
         web.header('Access-Control-Allow-Origin', '*')
-        send_notification('Default message', 'Ukraine', 'Kiev')
+        send_notification('Default message', 'Ukraine,Guatemala,USA,India', 'Kiev')
         return 'OK'
 
 
