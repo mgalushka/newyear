@@ -140,20 +140,17 @@ def send_notification(freeform, countries, cities):
     print(the_page)
 
 
-def schedule_notifications():
+def schedule_notifications(midnight=None):
     """
-    Sends notification to all users when New Year cames to corresponding country
+    Schedules all notifications according to registered users map
     """
     print('Scheduling all notifications according to schedule')
-    # curl --header "Authorization: key=AIzaSyBOv9VWbm2kvUh60_Jdl3QusMYvm02DdfU"
-    # --header Content-Type:"application/json" https://gcm-http.googleapis.com/gcm/send
-    # -d "{\"registration_ids\":[\"APA91bGSSunCUhhp06i85-j1-JmZifSfFgc50EgohKZWlPtM6CflwPbuGSWCgN-8SlnaxbRM26GvaXWYLvZIkgeFTYrD1VFAgfR3oi91Y2N58CPEmONIgOZqnawyPs2aSCsMjGcR1egg\"],\"data\":{\"text\":\"Ukraine\"}}"
 
     now = datetime.now()
 
     # next year
     year = datetime.today().year + 1
-    midnight = datetime.strptime(
+    midnight = midnight or datetime.strptime(
         '{0}-01-01 00:00'.format(year),
         '%Y-%m-%d %H:%M',
     )
@@ -184,6 +181,12 @@ def schedule_notifications():
 
 
 if __name__ == '__main__':
+    # test timer
+    schedule_notifications(datetime.strptime(
+        '2015-12-27 00:00',
+        '%Y-%m-%d %H:%M',
+    ))
+
     # scheduling timer
     schedule_notifications()
     app.run()
