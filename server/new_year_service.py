@@ -11,6 +11,7 @@ urls = (
     '/save-key', 'SaveKey',
     '/get-key', 'GetKey',
     '/list', 'ListKeys',
+    '/send-debug', 'SendDebug',
 )
 app = web.application(urls, globals())
 web.keys = {}
@@ -117,6 +118,16 @@ class ListKeys:
         return json.dumps(web.keys)
 
 
+class SendDebug:
+    def __init__(self):
+        pass
+
+    def POST(self):
+        web.header('Access-Control-Allow-Origin', '*')
+        send_notification('Default message')
+        return 'OK'
+
+
 def send_notification(text):
     print(web.keys)
     if not web.keys:
@@ -128,6 +139,7 @@ def send_notification(text):
         'registration_ids': [web.keys.values()],
         'data': {'text': text},
     }
+    print('Sending: {0}'.format(json.dumps(data)))
     req = urllib2.Request(
         'https://gcm-http.googleapis.com/gcm/send',
         json.dumps(data),

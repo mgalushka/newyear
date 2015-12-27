@@ -15,3 +15,6 @@ curl -i -d device=ABC -d key=XYZ -X POST http://api.lightbot.co:8080/save-key
 
 # all keys
 curl -i -X POST http://api.lightbot.co:8080/list
+
+# send all test message
+curl -i -X POST http://api.lightbot.co:8080/test
