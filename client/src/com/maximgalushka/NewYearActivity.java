@@ -3,7 +3,6 @@ package com.maximgalushka;
 import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.content.pm.PackageInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
@@ -12,7 +11,6 @@ import android.widget.Button;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.gcm.GoogleCloudMessaging;
-//import com.google.gson.Gson;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
@@ -20,17 +18,13 @@ import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.params.BasicHttpParams;
-import org.apache.http.params.HttpParams;
 import org.apache.http.util.EntityUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 public class NewYearActivity extends Activity {
 
@@ -51,10 +45,6 @@ public class NewYearActivity extends Activity {
   private static final String TAG = "NewYearActivity";
   private static GoogleCloudMessaging gcm;
   private static String regid;
-  private static String registrationStatus;
-  private static Context context;
-
-  private Button activateButton;
 
   /**
    * Called when the activity is first created.
@@ -64,8 +54,8 @@ public class NewYearActivity extends Activity {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.main);
 
-    this.activateButton = (Button) this.findViewById(R.id.activate);
-    this.activateButton.setOnClickListener(new View.OnClickListener() {
+    Button activateButton = (Button) this.findViewById(R.id.activate);
+    activateButton.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View v) {
         Log.d(TAG, "Registering device!");
@@ -78,13 +68,12 @@ public class NewYearActivity extends Activity {
     Context context = this.getApplicationContext();
     if (checkPlayServices(context)) {
       gcm = GoogleCloudMessaging.getInstance(this);
-      regid = getRegistrationId(context);
+      regid = getRegistrationId();
 
       Log.d(TAG, "RegistrationId: " + regid);
-      registrationStatus = regid;
 
       if (regid.isEmpty()) {
-        registerInBackground();
+        registerInBackground(context);
       }
     }
   }
@@ -108,7 +97,7 @@ public class NewYearActivity extends Activity {
     return true;
   }
 
-  String getRegistrationId(Context context) {
+  String getRegistrationId() {
     final SharedPreferences prefs = getGCMPreferences();
     String registrationId = prefs.getString(PROPERTY_REG_ID, "");
     String deviceId = prefs.getString(PROPERTY_DEVICE_ID, "");
@@ -131,7 +120,7 @@ public class NewYearActivity extends Activity {
     // since the existing regID is not guaranteed to work with the new
     // app version.
     int registeredVersion = prefs.getInt(PROPERTY_APP_VERSION, Integer.MIN_VALUE);
-    int currentVersion = getAppVersion(context);
+    int currentVersion = getAppVersion();
     if (registeredVersion != currentVersion) {
       Log.w(TAG, "App version changed. Need to generate new id.");
       return "";
@@ -145,12 +134,13 @@ public class NewYearActivity extends Activity {
     return this.getSharedPreferences("NewYear", Activity.MODE_PRIVATE);
   }
 
-  void registerInBackground() {
+  @SuppressWarnings("unchecked")
+  void registerInBackground(final Context context) {
     AsyncTask a = new AsyncTask() {
 
       protected String doInBackground(Object... params) {
 
-        String msg = "";
+        String msg;
         Log.d(TAG, "start background registration");
         try {
           if (gcm == null) {
@@ -164,8 +154,6 @@ public class NewYearActivity extends Activity {
 
           Log.d(TAG, msg);
 
-          registrationStatus = msg;
-
           // You should send the registration ID to your server over HTTP,
           // so it can use GCM/HTTP or CCS to send messages to your app.
           // The request to your server should be authenticated if your app
@@ -177,7 +165,7 @@ public class NewYearActivity extends Activity {
           // message using the 'from' address in the message.
 
           // Persist the regID - no need to register again.
-          storeRegistrationId(context, regid);
+          storeRegistrationId(regid);
         } catch (IOException ex) {
           msg = "Error :" + ex.getMessage();
           // If there is an error, don't just keep trying to register.
@@ -185,15 +173,10 @@ public class NewYearActivity extends Activity {
           // exponential back-off.
 
           Log.d(TAG, "Error: " + msg);
-          registrationStatus = msg;
         }
         return msg;
       }
 
-      protected void onPostExecute(String msg) {
-        Log.d(TAG, msg);
-        registrationStatus = msg;
-      }
     };
     a.execute();
   }
@@ -215,14 +198,14 @@ public class NewYearActivity extends Activity {
     Log.d(TAG, "Sent registration id to server");
   }
 
-  private static int getAppVersion(Context context) {
+  private static int getAppVersion() {
     // TODO: hard-code - remove this
     return 1;
   }
 
-  private void storeRegistrationId(Context context, String regId) {
+  private void storeRegistrationId(String regId) {
     final SharedPreferences prefs = getGCMPreferences();
-    int appVersion = getAppVersion(context);
+    int appVersion = getAppVersion();
     Log.d(TAG, "Saving regId on app version " + appVersion);
     SharedPreferences.Editor editor = prefs.edit();
     editor.putString(PROPERTY_REG_ID, regId);
@@ -230,6 +213,7 @@ public class NewYearActivity extends Activity {
     editor.apply();
   }
 
+  @SuppressWarnings("unchecked")
   String sendToServer(final String action, final String deviceId, final String key) {
     AsyncTask a = new AsyncTask() {
 
@@ -262,9 +246,6 @@ public class NewYearActivity extends Activity {
 
           String result = EntityUtils.toString(entity);
           Log.d(TAG, "result = " + result);
-
-          //if ( entity != null ) entity.writeTo( System.out );
-          //if ( entity != null ) entity.consumeContent();
 
           // TODO: think about protocol as this looks like a hack
           if ("ERROR".equalsIgnoreCase(result)) {
