@@ -1,6 +1,7 @@
 package com.maximgalushka.service;
 
 import android.app.IntentService;
+import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
@@ -75,26 +76,35 @@ public class GcmIntentService extends IntentService {
   // a GCM message.
   @SuppressWarnings("ResourceType")
   private void sendNotification(String msg) {
+    // pending intent is redirection using the deep-link
+    Intent resultIntent = new Intent(Intent.ACTION_VIEW);
+    PendingIntent pending = PendingIntent.getActivity(
+      this, 0, resultIntent, Intent.FLAG_ACTIVITY_NEW_TASK);
+
     mNotificationManager = (NotificationManager)
       this.getSystemService(Context.NOTIFICATION_SERVICE);
 
+    long[] pattern = {0, 100, 500};
     NotificationCompat.Builder mBuilder =
       new NotificationCompat.Builder(this)
-        .setSmallIcon(R.drawable.ic_launcher)
+        .setSmallIcon(R.drawable.cheers)
         .setContentTitle("NewYear")
         .setStyle(new NotificationCompat.BigTextStyle()
                     .bigText(msg))
         .setContentText(msg)
-        .setAutoCancel(true);
+        .setAutoCancel(true)
+        .setVibrate(pattern)
+        .addAction(
+          R.drawable.learn,
+          getString(R.string.learn),
+          pending
+        );
 
-    // pending intent is redirection using the deep-link
-    Intent resultIntent = new Intent(Intent.ACTION_VIEW);
 
     // redirect to corresponding country Wikipedia page
     resultIntent.setData(Uri.parse(String.format("https://en.wikipedia.org/wiki/%s", msg)));
 
-    PendingIntent pending = PendingIntent.getActivity(
-      this, 0, resultIntent, Intent.FLAG_ACTIVITY_NEW_TASK);
+
     mBuilder.setContentIntent(pending);
 
     mNotificationManager.notify(NOTIFICATION_ID, mBuilder.build());

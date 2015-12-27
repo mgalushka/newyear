@@ -3,4 +3,5 @@
     <string name="app_name">NewYear</string>
     <string name="happy_new_year">Happy New %d Year!</string>
     <string name="register_phone_button">Register phone</string>
+    <string name="learn">Learn</string>
 </resources>
