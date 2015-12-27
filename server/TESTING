@@ -13,4 +13,5 @@ curl --header "Authorization: key=AIzaSyBOv9VWbm2kvUh60_Jdl3QusMYvm02DdfU" --hea
 # real server - already installed
 curl -i -d device=ABC -d key=XYZ -X POST http://api.lightbot.co:8080/save-key
 
-curl -i -d device=7afdc1df-517-4e45-9117-f443f7692199 -X POST http://api.lightbot.co:8080/get-key
+# all keys
+curl -i -X POST http://api.lightbot.co:8080/list
