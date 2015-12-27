@@ -16,13 +16,16 @@ import com.google.android.gms.gcm.GoogleCloudMessaging;
 import com.maximgalushka.NewYearActivity;
 import com.maximgalushka.R;
 
+import java.lang.reflect.Array;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public class GcmIntentService extends IntentService {
   private static final String TAG = "GcmIntentService";
 
-  public static final int NOTIFICATION_ID = 1;
+  private static int NOTIFICATION_ID = 1;
   private NotificationManager mNotificationManager;
   NotificationCompat.Builder builder;
 
@@ -45,30 +48,17 @@ public class GcmIntentService extends IntentService {
        * any message types you're not interested in, or that you don't
        * recognize.
        */
-      if (GoogleCloudMessaging.
-        MESSAGE_TYPE_SEND_ERROR.equals(messageType)) {
-        sendNotification("Send error: " + extras.toString());
-      } else if (GoogleCloudMessaging.
-        MESSAGE_TYPE_DELETED.equals(messageType)) {
-        sendNotification("Deleted messages on server: " +
-                           extras.toString());
-        // If it's a regular GCM message, do some work.
-      } else if (GoogleCloudMessaging.
-        MESSAGE_TYPE_MESSAGE.equals(messageType)) {
-        // This loop represents the service doing some work.
-        for (int i = 0; i < 5; i++) {
-          Log.d(TAG, "Working... " + (i + 1)
-            + "/5 @ " + SystemClock.elapsedRealtime());
-          try {
-            Thread.sleep(5000);
-          } catch (InterruptedException e) {
-          }
-        }
-        Log.d(TAG, "Completed work @ " + SystemClock.elapsedRealtime());
+      if (GoogleCloudMessaging.MESSAGE_TYPE_MESSAGE.equals(messageType)) {
         // Post notification of received message.
         String messageText = extras.getString("text");
         String[] countries = extras.getString("countries").split(",");
-        sendNotification(messageText, Arrays.asList(countries));
+        String[] cities = extras.getString("cities").split(",");
+        List<String> all = new ArrayList<>();
+        all.addAll(Arrays.asList(countries));
+        all.addAll(Arrays.asList(cities));
+        Collections.shuffle(all);
+
+        sendNotification(messageText, all.subList(0, Math.min(all.size(), 5)));
         Log.d(TAG, "Received: " + messageText);
       }
     }
@@ -84,8 +74,8 @@ public class GcmIntentService extends IntentService {
     // pending intent is redirection using the deep-link
     Intent resultIntent = new Intent(Intent.ACTION_VIEW);
 
-    // redirect to corresponding country Wikipedia page
-    resultIntent.setData(Uri.parse(String.format("https://en.wikipedia.org/wiki/%s", msg)));
+    // redirect to 1st country Wikipedia page
+    resultIntent.setData(Uri.parse(String.format("https://en.wikipedia.org/wiki/%s", countries.get(0))));
 
     PendingIntent pending = PendingIntent.getActivity(this, 0, resultIntent, Intent.FLAG_ACTIVITY_NEW_TASK);
 
@@ -102,13 +92,20 @@ public class GcmIntentService extends IntentService {
         .setStyle(new NotificationCompat.BigTextStyle()
                     .bigText(msg))
         .setContentText(msg)
-        .setAutoCancel(true)
         .setVibrate(pattern)
-        .setSound(defaultSound)
-      .setContentIntent(pending)
-      .addAction(R.drawable.icon, "Call", pIntent);
+        //.setSound(defaultSound)
+        .setContentIntent(pending);
 
-    mNotificationManager.notify(NOTIFICATION_ID, mBuilder.build());
+    for (String country : countries) {
+      Intent actionIntent = new Intent(
+        Intent.ACTION_VIEW,
+        Uri.parse(String.format("https://en.wikipedia.org/wiki/%s", country))
+      );
+      PendingIntent actionPendingIntent = PendingIntent.getActivity(this, 0, actionIntent, 0);
+      mBuilder.addAction(R.drawable.icon, country, actionPendingIntent);
+    }
+
+    mNotificationManager.notify(NOTIFICATION_ID++, mBuilder.build());
   }
 }
 
