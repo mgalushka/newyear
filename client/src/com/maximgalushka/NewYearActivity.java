@@ -237,8 +237,8 @@ public class NewYearActivity extends Activity {
           HttpResponse response = httpClient.execute(httpPost);
           HttpEntity entity = response.getEntity();
 
-          // TODO: thing about protocol between client and server
-          //Gson gson = new Gson(); // Or use new GsonBuilder().create();
+          // TODO: think about protocol between client and server
+          // Gson gson = new Gson(); // Or use new GsonBuilder().create();
 
           Log.d(TAG, "----------------------------------------");
           Log.d(TAG, String.valueOf(response.getStatusLine()));
@@ -268,7 +268,5 @@ public class NewYearActivity extends Activity {
     }
     return null;
   }
-
-
 
 }

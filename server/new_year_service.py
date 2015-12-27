@@ -75,6 +75,7 @@ schedule = [
     ['11:00', 'American Samoa Midway Atoll/U.S.A. and 1 more',
      'Alofi Midway Pago Pago'],
     ['12:00', 'small region of U.S.A.', 'Baker Island Howland Island'],
+    ['-102:55', 'Test', 'Test'],
 ]
 
 
