@@ -7,6 +7,49 @@ import json
 import urllib2
 import web
 
+schedule = [
+    ['-14:00','Samoa and Christmas Island/Kiribati','Samoa,Christmas Island,Kiribati','Kiritimati,Apia,Salelologa (Savai\'i)'],
+    ['-13:45','Chatham Islands/New Zealand','Chatham Islands,New Zealand','Chatham Islands'],
+    ['-13:00','New Zealand with exceptions, Fiji, some regions of Antarctica, Tonga, Phoenix Islands/Kiribati and Tokelau','New Zealand,Fiji, Antarctica,Tonga,Phoenix Islands,Kiribati,Tokelau','Auckland,Suva,Wellington,Nukualofa'],
+    ['-12:00','small region of Russia, regions of Kiribati, Marshall Islands, Wallis and Futuna, Nauru, regions of US Minor Outlying Islands and Tuvalu',' Russia, Kiribati,Marshall Islands,Wallis,Futuna,Nauru, US Minor Outlying Islands,Tuvalu','Anadyr,Funafuti,Yaren,Tarawa,Majuro'],
+    ['-11:30','much of Australia, Sakha (Yakutia)/Russia, Pohnpei/Micronesia, Vanuatu, some regions of Antarctica, Bougainville/Papua New Guinea, Solomon Islands, New Caledonia and Norfolk Island',' Australia,Sakha (Yakutia),Russia,Pohnpei,Micronesia,Vanuatu, Antarctica,Bougainville,Papua New Guinea,Solomon Islands,New Caledonia,Norfolk Island','Melbourne,Sydney,Canberra,Honiara'],
+    ['-11:00','small region of Australia',' Australia','Adelaide,Broken Hill,Ceduna'],
+    ['-10:30','Queensland/Australia, some regions of Russia, much of Papua New Guinea, regions of Micronesia, Northern Mariana Islands, small region of Antarctica and Guam','Queensland,Australia, Russia, Papua New Guinea, Micronesia,Northern Mariana Islands, Antarctica,Guam','Brisbane,Port Moresby,Hagåtña'],
+    ['-10:00','Northern Territory/Australia','Northern Territory,Australia','Darwin,Alice Springs,Tennant Creek'],
+    ['-9:30','Japan, South Korea, Sakha (Yakutia)/Russia, small region of Indonesia, Timor-Leste and Palau','Japan,South Korea,Sakha (Yakutia),Russia, Indonesia,Timor-Leste,Palau','Tokyo,Seoul,Dili,Melekeok,Yakutsk'],
+    ['-9:00','Western Australia/Australia','Western Australia,Australia','Eucla'],
+    ['-8:45','North Korea','North Korea','Pyongyang,Hamhung,Chongjin,Namp’o'],
+    ['-8:00','China, Philippines, regions of Indonesia, Western Australia/Australia, Malaysia, most of Mongolia, Taiwan, small region of Russia, Brunei, Hong Kong, Singapore and Macau','China,Philippines, Indonesia,Western Australia,Australia,Malaysia, Mongolia,Taiwan, Russia,Brunei,Hong Kong,Singapore,Macau','Beijing,Hong Kong,Manila,Singapore'],
+    ['-7:00','much of Indonesia, Thailand, Krasnoyarsk/Russia, Vietnam, Cambodia, Laos, some regions of Mongolia, small region of Antarctica and Christmas Island',' Indonesia,Thailand,Krasnoyarsk,Russia,Vietnam,Cambodia,Laos, Mongolia, Antarctica,Christmas Island','Jakarta,Bangkok,Hanoi,Phnom Penh'],
+    ['-6:30','Myanmar and Cocos Islands','Myanmar,Cocos Islands','Yangon,Naypyidaw,Mandalay,Mawlamyine'],
+    ['-6:00','Bangladesh, much of Kazakhstan, small region of Russia, Kyrgyzstan, Bhutan, British Indian Ocean Territory and small region of Antarctica','Bangladesh, Kazakhstan, Russia,Kyrgyzstan,Bhutan,British Indian Ocean Territory, Antarctica','Dhaka,Almaty,Bishkek,Thimphu,Astana'],
+    ['-5:45','Nepal','Nepal','Kathmandu,Biratnagar,Pokhara'],
+    ['-5:30','India and Sri Lanka','India,Sri Lanka','New Delhi,Mumbai,Kolkata,Bengaluru'],
+    ['-5:00','Pakistan, some regions of Russia, Uzbekistan, Turkmenistan, regions of Kazakhstan, Maldives, Tajikistan, French Southern Territories and small region of Antarctica','Pakistan, Russia,Uzbekistan,Turkmenistan, Kazakhstan,Maldives,Tajikistan,French Southern Territories, Antarctica','Tashkent,Islamabad,Lahore,Karachi'],
+    ['-4:30','Afghanistan','Afghanistan','Kabul,Kandahar,Mazari Sharif,Herat'],
+    ['-4:00','Azerbaijan, United Arab Emirates, Armenia, Oman, small region of Russia, much of Georgia, Reunion (French), Mauritius and Seychelles','Azerbaijan,United Arab Emirates,Armenia,Oman, Russia, Georgia,Reunion (French),Mauritius,Seychelles','Dubai,Abu Dhabi,Muscat,Port Louis'],
+    ['-3:30','Iran','Iran','Tehran,Rasht,Esfahãn,Mashhad,Tabriz'],
+    ['-3:00','Moscow/Russia, Saudi Arabia, Ethiopia, Iraq, Belarus, Somalia, Madagascar, Tanzania, Eritrea, Uganda, regions of Ukraine, Djibouti, Sudan, Yemen, Kenya, South Sudan, Qatar, Comoros, Bahrain, regions of Georgia, small region of South Africa, Kuwait and Mayotte','Moscow,Russia,Saudi Arabia,Ethiopia,Iraq,Belarus,Somalia,Madagascar,Tanzania,Eritrea,Uganda, Ukraine,Djibouti,Sudan,Yemen,Kenya,South Sudan,Qatar,Comoros,Bahrain, Georgia, South Africa,Kuwait,Mayotte','Moscow,Baghdad,Khartoum,Nairobi'],
+    ['-2:00','Greece, South Africa with exceptions, Finland, Israel, Turkey, Egypt, Kyiv/Ukraine, Botswana, Bulgaria, Romania, Estonia, Palestinian Territories, Syria, Zambia, Zimbabwe, Latvia, much of Dem. Rep. Congo, Libya, Jordan, Burundi, Cyprus, Rwanda, Malawi, Namibia, Lebanon, Lithuania, Mozambique, Lesotho, Moldova, Swaziland and small region of Russia','Greece,South Africa,Finland,Israel,Turkey,Egypt,Kyiv,Ukraine,Botswana,Bulgaria,Romania,Estonia,Palestinian Territories,Syria,Zambia,Zimbabwe,Latvia, Dem. Rep. Congo,Libya,Jordan,Burundi,Cyprus,Rwanda,Malawi,Namibia,Lebanon,Lithuania,Mozambique,Lesotho,Moldova,Swaziland, Russia','Cairo,Ankara,Athens,Bucharest'],
+    ['-1:00','Germany, Norway, Switzerland, Austria, France, Poland, Italy, Barcelona/Spain, Netherlands, Sweden, Nigeria, Denmark, Belgium, Croatia, Bosnia-Herzegovina, Algeria, Tunisia, Czech Republic, Slovakia, Angola, Chad, Central African Republic, Hungary, Benin, Cameroon, Equatorial Guinea, Albania, Serbia, regions of Dem. Rep. Congo, Slovenia, Niger, Congo, Luxembourg, Macedonia, Republic of, Kosovo, Montenegro, Gabon, San Marino, Malta, Liechtenstein, Vatican City State, Gibraltar, Monaco and Andorra','Germany,Norway,Switzerland,Austria,France,Poland,Italy,Barcelona,Spain,Netherlands,Sweden,Nigeria,Denmark,Belgium,Croatia,Bosnia-Herzegovina,Algeria,Tunisia,Czech Republic,Slovakia,Angola,Chad,Central African Republic,Hungary,Benin,Cameroon,Equatorial Guinea,Albania,Serbia, Dem. Rep. Congo,Slovenia,Niger,Congo,Luxembourg,Macedonia,Republic of,Kosovo,Montenegro,Gabon,San Marino,Malta,Liechtenstein,Vatican City State,Gibraltar,Monaco,Andorra','Brussels,Madrid,Paris,Rome,Algiers'],
+    ['0:00','United Kingdom, Portugal with exceptions, Ireland, Cote d\'Ivoire (Ivory Coast), Morocco, Iceland, Burkina Faso, Senegal, Sierra Leone, Togo, Liberia, Mauritania, Western Sahara, Guinea, Mali, some regions of Spain, Guinea-Bissau, Saint Helena, Gambia, Ghana, Guernsey, some regions of Antarctica, Isle of Man, small region of Greenland, Faroe Islands, Sao Tome and Principe and Jersey','United Kingdom,Portugal,Ireland,Cote d\'Ivoire (Ivory Coast),Morocco,Iceland,Burkina Faso,Senegal,Sierra Leone,Togo,Liberia,Mauritania,Western Sahara,Guinea,Mali, Spain,Guinea-Bissau,Saint Helena,Gambia,Ghana,Guernsey, Antarctica,Isle of Man, Greenland,Faroe Islands,Sao Tome,Principe,Jersey','London,Casablanca,Dublin,Lisbon,Accra'],
+    ['1:00','Cabo Verde, Azores/Portugal and small region of Greenland','Cabo Verde,Azores,Portugal, Greenland','Praia,Ponta Delgada,Ittoqqortoormiit'],
+    ['2:00','regions of Brazil and South Georgia/Sandwich Is.',' Brazil,South Georgia,Sandwich Is.','Rio de Janeiro,São Paulo,Brasilia'],
+    ['3:00','Argentina, regions of Brazil, Chile with exceptions, Uruguay, most of Greenland, regions of Antarctica, Paraguay, French Guiana, Suriname, Falkland Islands and Saint Pierre and Miquelon','Argentina, Brazil,Chile,Uruguay, Greenland, Antarctica,Paraguay,French Guiana,Suriname,Falkland Islands,Saint Pierre,Miquelon','Buenos Aires,Santiago,Asuncion'],
+    ['3:30','Newfoundland and Labrador/Canada','Newfoundland,Labrador,Canada','St. John\'s,Mary\'s Harbour'],
+    ['4:00','some regions of Canada, Bolivia, Dominican Republic, Amazonas/Brazil, Puerto Rico, Trinidad and Tobago, US Virgin Islands, Turks and Caicos Islands, Guyana, Caribbean Netherlands, Antigua and Barbuda, Guadeloupe, Saint Kitts and Nevis, Saint Lucia, British Virgin Islands, small region of Greenland, Saint Vincent and Grenadines, Bermuda, Anguilla, Dominica, Montserrat, Sint Maarten, Barbados, Saint Martin, Grenada, Saint Barthélemy, Curaçao, Aruba and Martinique','some  Canada,Bolivia,Dominican Republic,Amazonas,Brazil,Puerto Rico,Trinidad,Tobago,US Virgin Islands,Turks,Caicos Islands,Guyana,Caribbean Netherlands,Antigua,Barbuda,Guadeloupe,Saint Kitts,Nevis,Saint Lucia,British Virgin Islands, Greenland,Saint Vincent,Grenadines,Bermuda,Anguilla,Dominica,Montserrat,Sint Maarten,Barbados,Saint Martin,Grenada,Saint Barthélemy,Curaçao,Aruba,Martinique','La Paz,San Juan,Santo Domingo,Halifax'],
+    ['4:30','Venezuela','Venezuela','Caracas,Barquisimeto,Maracaibo'],
+    ['5:00','regions of U.S.A., regions of Canada, Colombia, Peru, Ecuador with exceptions, Cuba, Panama, small region of Brazil, small region of Mexico, Haiti, Jamaica, Bahamas, small region of Chile and Cayman Islands',' USA, Canada,Colombia,Peru,Ecuador,Cuba,Panama, Brazil, Mexico,Haiti,Jamaica,Bahamas, Chile,Cayman Islands','New York,Washington DC,Detroit,Havana'],
+    ['6:00','regions of U.S.A., Federal District/Mexico, some regions of Canada, Honduras, Belize, Nicaragua, Costa Rica, El Salvador, Guatemala and small region of Ecuador',' USA,Federal District,Mexico, Canada,Honduras,Belize,Nicaragua,Costa Rica,El Salvador,Guatemala, Ecuador','Mexico City,Chicago,Guatemala,Dallas'],
+    ['7:00','some regions of U.S.A., some regions of Canada and some regions of Mexico','some  USA, Canada, Mexico','Calgary,Denver,Edmonton,Phoenix'],
+    ['8:00','regions of U.S.A., some regions of Canada, Baja California/Mexico and Pitcairn Islands',' USA, Canada,Baja California,Mexico,Pitcairn Islands','Los Angeles,San Francisco,Las Vegas'],
+    ['9:00','Alaska/U.S.A. and regions of French Polynesia','Alaska,USA, French Polynesia','Anchorage,Fairbanks,Juneau,Unalaska'],
+    ['9:30','Marquesas Islands/French Polynesia','Marquesas Islands,French Polynesia','Taiohae'],
+    ['10:00','small region of U.S.A., Tahiti/French Polynesia and Cook Islands',' USA,Tahiti,French Polynesia,Cook Islands','Honolulu,Rarotonga,Adak,Papeete,Hilo'],
+    ['11:00','American Samoa, regions of US Minor Outlying Islands and Niue','American Samoa, US Minor Outlying Islands,Niue','Alofi,Midway,Pago Pago'],
+    ['12:00','much of US Minor Outlying Islands',' US Minor Outlying Islands','Baker Island,Howland Island'],
+    ['-101:40', 'Test', 'Test'],
+]
 urls = (
     '/save-key', 'SaveKey',
     '/get-key', 'GetKey',
@@ -17,68 +60,6 @@ app = web.application(urls, globals())
 web.keys = {}
 
 # new year schedule: time -> list of countries
-schedule = [
-    ['-14:00', 'Christmas Island/Kiribati and Samoa', 'Kiritimati Apia'],
-    ['-13:45', 'Chatham Islands/New Zealand', 'Chatham Islands'],
-    ['-13:00', 'New Zealand with exceptions and 5 more',
-     'Auckland Suva Wellington Nukualofa'],
-    ['-12:00', 'small region of Russia Marshall Islands and 5 more',
-     'Anadyr Funafuti Yaren Tarawa'],
-    ['-11:30', 'Norfolk Island', 'Kingston'],
-    ['-11:00', 'much of Australia and 5 more',
-     ' Melbourne Sydney Canberra Honiara'],
-    ['-10:30', 'small region of Australia', 'Adelaide Broken Hill'],
-    ['-10:00',
-     'Queensland/Australia and 5 more Brisbane', 'Port Moresby Guam (Hagatna) Cairns'],
-    ['-9:30', 'Northern Territory/Australia', ' Darwin Alice Springs Uluru'],
-    ['-9:00', 'Japan and 6 more', 'Tokyo Seoul Pyongyang Dili'],
-    ['-8:45', 'Western Australia/Australia', 'Eucla'],
-    ['-8:00', 'China and 12 more', 'Beijing Hong Kong Manila Singapore'],
-    ['-7:00', 'much of Indonesia Thailand and 7 more',
-     'Jakarta Bangkok Hanoi Phnom Penh'],
-    ['-6:30', 'Myanmar and Cocos Islands', 'Yangon Naypyidaw Mandalay Bantam'],
-    ['-6:00', 'Bangladesh some regions of Russia and 4 more',
-     ' Dhaka Almaty Bishkek Thimphu'],
-    ['-5:45', 'Nepal', 'Kathmandu Biratnagar Pokhara'],
-    ['-5:30', 'India and Sri Lanka', 'New Delhi Mumbai Kolkata Bangalore'],
-    ['-5:00', 'Pakistan and 8 more', 'Tashkent Islamabad Lahore Karachi'],
-    ['-4:30', 'Afghanistan', 'Kabul Kandahar Mazari Sharif Herat'],
-    ['-4:00', 'much of Russia and 8 more', 'Moscow Dubai Abu Dhabi Muscat'],
-    ['-3:30', 'Iran', ' Tehran Rasht Esfahan Bandar-Abbas'],
-    ['-3:00', 'Iraq and 20 more', ' Baghdad Khartoum Nairobi Addis Ababa'],
-    ['-2:00', 'Greece and 30 more', 'Cairo Ankara Athens Bucharest'],
-    ['-1:00', 'Germany and 43 more', 'Brussels Madrid Paris Rome'],
-    ['0:00', 'United Kingdom and 24 more', 'London Casablanca Dublin Lisbon'],
-    ['1:00',
-     'Cape Verde some regions of Greenland and 1 more', 'Praia Ponta Delgada (Azores) Ittoqqortoormiit Mindelo'],
-    ['2:00', 'regions of Brazil Uruguay and 1 more',
-     ' Rio de Janeiro Sao Paulo Brasilia Montevideo'],
-    ['3:00',
-     'regions of Brazil Argentina and 7 more', 'Buenos Aires Santiago Asuncion Paramaribo'],
-    ['3:30', 'Newfoundland and Labrador/Canada',
-     ' St. John\'s Conception Bay South Corner Brook Gander'],
-    [
-        '4:00', 'some regions of Canada and 26 more',
-        'La Paz San Juan Santo Domingo Halifax'],
-    ['4:30', 'Venezuela', 'Caracas Barquisimeto Maracaibo Maracay'],
-    ['5:00', 'regions of U.S.A. regions of Canada and 12 more',
-     'New York Washington DC Detroit Havana'],
-    ['6:00', 'regions of U.S.A. some regions of Canada and 8 more',
-     'Mexico City Chicago Guatemala Dallas'],
-    ['7:00', 'some regions of U.S.A. some regions of Canada and 1 more',
-     ' Calgary Denver Edmonton Phoenix'],
-    ['8:00', 'regions of U.S.A. some regions of Canada and 2 more',
-     'Los Angeles San Francisco Las Vegas Seattle'],
-    ['9:00', 'Alaska/U.S.A. and French Polynesia',
-     'Anchorage Fairbanks Unalaska Juneau'],
-    ['9:30', 'Marquesas Islands/France', ' Taiohae'],
-    ['10:00', 'small region of U.S.A. and 2 more',
-     'Honolulu Rarotonga Adak Papeete'],
-    ['11:00', 'American Samoa Midway Atoll/U.S.A. and 1 more',
-     'Alofi Midway Pago Pago'],
-    ['12:00', 'small region of U.S.A.', 'Baker Island Howland Island'],
-    ['-101:40', 'Test', 'Test'],
-]
 
 
 class SaveKey:
@@ -128,7 +109,7 @@ class SendDebug:
         return 'OK'
 
 
-def send_notification(text):
+def send_notification(freeform, countries, cities):
     print(web.keys)
     if not web.keys:
         print('Empty keys map - nothing to send. '
@@ -137,7 +118,11 @@ def send_notification(text):
 
     data = {
         'registration_ids': web.keys.values(),
-        'data': {'text': text},
+        'data': {
+            'text': 'New Year came to: {0}'.format(freeform),
+            'countries': countries,
+            'cities': cities,
+        },
     }
     print('Sending: {0}'.format(json.dumps(data)))
     req = urllib2.Request(
@@ -175,8 +160,9 @@ def schedule_notifications():
 
     for s_values in schedule:
         shift = s_values[0]
-        countries = s_values[1]
-        cities = s_values[2]
+        freeform = s_values[1]
+        countries = s_values[2]
+        cities = s_values[3]
 
         hours = int(shift[:shift.find(':')])
         minutes = -int(shift[shift.find(':') + 1:])
@@ -192,7 +178,7 @@ def schedule_notifications():
         t = Timer(
             delay,
             send_notification,
-            args=[text],
+            args=[freeform, countries, cities],
         )
         t.start()
 

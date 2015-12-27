@@ -16,6 +16,9 @@ import com.google.android.gms.gcm.GoogleCloudMessaging;
 import com.maximgalushka.NewYearActivity;
 import com.maximgalushka.R;
 
+import java.util.Arrays;
+import java.util.List;
+
 public class GcmIntentService extends IntentService {
   private static final String TAG = "GcmIntentService";
 
@@ -64,7 +67,8 @@ public class GcmIntentService extends IntentService {
         Log.d(TAG, "Completed work @ " + SystemClock.elapsedRealtime());
         // Post notification of received message.
         String messageText = extras.getString("text");
-        sendNotification(messageText);
+        String[] countries = extras.getString("countries").split(",");
+        sendNotification(messageText, Arrays.asList(countries));
         Log.d(TAG, "Received: " + messageText);
       }
     }
@@ -76,7 +80,15 @@ public class GcmIntentService extends IntentService {
   // This is just one simple example of what you might choose to do with
   // a GCM message.
   @SuppressWarnings("ResourceType")
-  private void sendNotification(String msg) {
+  private void sendNotification(String msg, List<String> countries) {
+    // pending intent is redirection using the deep-link
+    Intent resultIntent = new Intent(Intent.ACTION_VIEW);
+
+    // redirect to corresponding country Wikipedia page
+    resultIntent.setData(Uri.parse(String.format("https://en.wikipedia.org/wiki/%s", msg)));
+
+    PendingIntent pending = PendingIntent.getActivity(this, 0, resultIntent, Intent.FLAG_ACTIVITY_NEW_TASK);
+
     mNotificationManager = (NotificationManager)
       this.getSystemService(Context.NOTIFICATION_SERVICE);
 
@@ -92,16 +104,9 @@ public class GcmIntentService extends IntentService {
         .setContentText(msg)
         .setAutoCancel(true)
         .setVibrate(pattern)
-        .setSound(defaultSound);
-
-    // pending intent is redirection using the deep-link
-    Intent resultIntent = new Intent(Intent.ACTION_VIEW);
-
-    // redirect to corresponding country Wikipedia page
-    resultIntent.setData(Uri.parse(String.format("https://en.wikipedia.org/wiki/%s", msg)));
-
-    PendingIntent pending = PendingIntent.getActivity(this, 0, resultIntent, Intent.FLAG_ACTIVITY_NEW_TASK);
-    mBuilder.setContentIntent(pending);
+        .setSound(defaultSound)
+      .setContentIntent(pending)
+      .addAction(R.drawable.icon, "Call", pIntent);
 
     mNotificationManager.notify(NOTIFICATION_ID, mBuilder.build());
   }
