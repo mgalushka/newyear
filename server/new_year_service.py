@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 from threading import Timer
 
 import json
+import time
 import urllib2
 import web
 
@@ -110,10 +111,11 @@ class SendDebug:
 
 
 def send_notification(freeform, countries, cities):
-    print(web.keys)
     if not web.keys:
-        print('Empty keys map - nothing to send. '
-              'Skip notifications sending step.')
+        print(('Empty keys map - nothing to send. '
+               'Skip notifications sending step for {0}.').format(
+            datetime.now().strftime('%Y-%m-%d %H:%M')),
+        )
         return
 
     data = {
@@ -178,6 +180,8 @@ def schedule_notifications(midnight=None):
             args=[freeform, countries, cities],
         )
         t.start()
+        # to spread all threads in time
+        time.sleep(0.1)
 
 
 if __name__ == '__main__':
