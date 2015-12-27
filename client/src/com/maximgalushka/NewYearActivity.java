@@ -15,13 +15,18 @@ import com.google.android.gms.gcm.GoogleCloudMessaging;
 //import com.google.gson.Gson;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpParams;
 import org.apache.http.util.EntityUtils;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -106,11 +111,11 @@ public class NewYearActivity extends Activity {
   String getRegistrationId(Context context) {
     final SharedPreferences prefs = getGCMPreferences();
     String registrationId = prefs.getString(PROPERTY_REG_ID, "");
+    String deviceId = prefs.getString(PROPERTY_DEVICE_ID, "");
     if (registrationId.isEmpty()) {
       Log.w(TAG, "Registration not found. Trying to get registration id from server.");
 
       // check if device id is in preferences and try to get registration id from server:
-      String deviceId = prefs.getString(PROPERTY_DEVICE_ID, "");
       if (deviceId.isEmpty()) {
         Log.w(TAG, "Device id not found on server. Need to generate new id.");
         return "";
@@ -118,6 +123,9 @@ public class NewYearActivity extends Activity {
         registrationId = sendToServer(GET_KEY, deviceId, null);
         Log.d(TAG, String.format("Registration id found on server: %s", registrationId));
       }
+    } else {
+      Log.d(TAG, String.format("Registration id is found in storage %s. Save it on server.", registrationId));
+      sendToServer(SAVE_KEY, deviceId, registrationId);
     }
     // Check if app was updated; if so, it must clear the registration ID
     // since the existing regID is not guaranteed to work with the new
@@ -201,6 +209,7 @@ public class NewYearActivity extends Activity {
       editor.putString(PROPERTY_DEVICE_ID, deviceId);
       editor.apply();
     }
+    Log.d(TAG, String.format("Device id: %s", deviceId));
     // post to service
     sendToServer(SAVE_KEY, deviceId, registrationId);
     Log.d(TAG, "Sent registration id to server");
@@ -231,14 +240,15 @@ public class NewYearActivity extends Activity {
           Log.d(TAG, "Execute request on server: " + action);
 
           HttpPost httpPost = new HttpPost(String.format("%s%s", ROOT, action));
-          HttpParams postParams = new BasicHttpParams();
-          postParams.setParameter("device", deviceId);
+
+          List<NameValuePair> nvps = new ArrayList<>();
+          nvps.add(new BasicNameValuePair("device", deviceId));
 
           if (key != null) {
-            postParams.setParameter("key", key);
+            nvps.add(new BasicNameValuePair("key", key));
           }
 
-          httpPost.setParams(postParams);
+          httpPost.setEntity(new UrlEncodedFormEntity(nvps, "UTF-8"));
 
           HttpResponse response = httpClient.execute(httpPost);
           HttpEntity entity = response.getEntity();
@@ -271,7 +281,7 @@ public class NewYearActivity extends Activity {
 
     a.execute();
     try {
-      return (String) a.get(10, TimeUnit.SECONDS);
+      return (String) a.get(30, TimeUnit.SECONDS);
     } catch (Exception e) {
       e.printStackTrace();
     }
