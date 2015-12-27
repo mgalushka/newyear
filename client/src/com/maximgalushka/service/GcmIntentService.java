@@ -6,6 +6,7 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.SystemClock;
@@ -76,15 +77,12 @@ public class GcmIntentService extends IntentService {
   // a GCM message.
   @SuppressWarnings("ResourceType")
   private void sendNotification(String msg) {
-    // pending intent is redirection using the deep-link
-    Intent resultIntent = new Intent(Intent.ACTION_VIEW);
-    PendingIntent pending = PendingIntent.getActivity(
-      this, 0, resultIntent, Intent.FLAG_ACTIVITY_NEW_TASK);
-
     mNotificationManager = (NotificationManager)
       this.getSystemService(Context.NOTIFICATION_SERVICE);
 
-    long[] pattern = {0, 100, 500};
+    long[] pattern = {0, 600, 300, 800, 600, 1200};
+    Uri defaultSound = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+
     NotificationCompat.Builder mBuilder =
       new NotificationCompat.Builder(this)
         .setSmallIcon(R.drawable.cheers)
@@ -94,17 +92,15 @@ public class GcmIntentService extends IntentService {
         .setContentText(msg)
         .setAutoCancel(true)
         .setVibrate(pattern)
-        .addAction(
-          R.drawable.learn,
-          getString(R.string.learn),
-          pending
-        );
+        .setSound(defaultSound);
 
+    // pending intent is redirection using the deep-link
+    Intent resultIntent = new Intent(Intent.ACTION_VIEW);
 
     // redirect to corresponding country Wikipedia page
     resultIntent.setData(Uri.parse(String.format("https://en.wikipedia.org/wiki/%s", msg)));
 
-
+    PendingIntent pending = PendingIntent.getActivity(this, 0, resultIntent, Intent.FLAG_ACTIVITY_NEW_TASK);
     mBuilder.setContentIntent(pending);
 
     mNotificationManager.notify(NOTIFICATION_ID, mBuilder.build());
